@@ -1,0 +1,95 @@
+-- Colour Run 
+-- By Eris Dwarf
+-- Server Side Script to be place in Server Script Service
+
+-- Constants
+local FADE_DURATION = 1
+local WAIT_TIME = 3
+
+-- Get the folder containing the parts
+local FolderOfParts = game.Workspace.Hexagons
+
+-- Define the colors to use
+local Colors = {
+	{Color = BrickColor.new("Really red").Color, Name = "Red"},
+	{Color = BrickColor.new("Lime green").Color, Name = "Green"},
+	{Color = BrickColor.new("Really blue").Color, Name = "Blue"},
+	{Color = BrickColor.new("New Yeller").Color, Name = "Yellow"},
+	{Color = BrickColor.new("Lily white").Color, Name = "White"},
+	{Color = BrickColor.new("Bright orange").Color, Name = "Orange"},
+	{Color = BrickColor.new("Pink").Color, Name = "Pink"},
+	{Color = BrickColor.new("Royal purple").Color, Name = "Purple"},
+	{Color = BrickColor.new("Black").Color, Name = "Black"},
+}
+
+-- Check for existing RemoteEvent
+local ColorChanged = game.ReplicatedStorage:FindFirstChild("ColorChanged")
+if ColorChanged then
+	ColorChanged:Destroy()
+end
+
+-- Create a RemoteEvent
+ColorChanged = Instance.new("RemoteEvent")
+ColorChanged.Name = "ColorChanged"
+ColorChanged.Parent = game.ReplicatedStorage
+
+-- Function to animate the transparency of a part
+local function FadeAnimation(part, TransparentNum)
+	-- Get the TweenService
+	local TweenService = game:GetService("TweenService")
+
+	-- Define the tween info
+	local info = TweenInfo.new(FADE_DURATION, Enum.EasingStyle.Linear, Enum.EasingDirection.In)
+
+	-- Set CanCollide to the opposite of TransparentNum (true when the part is opaque, false when transparent)
+	part.CanCollide = TransparentNum == 0
+
+	-- Create the tween
+	local tween = TweenService:Create(part, info, {Transparency = TransparentNum})
+
+	-- Start the tween
+	tween:Play()
+
+	-- Wait for the tween to complete
+	tween.Completed:Wait()
+end
+
+-- Start an infinite loop
+while true do
+	-- Pick a random color
+	local PickRandom = Colors[math.random(1, #Colors)]
+
+	-- Fire the RemoteEvent to update the colorLabel's text on the client side
+	ColorChanged:FireAllClients(PickRandom.Color, PickRandom.Name)
+	print("Fired ColorChanged event")  -- Debug print
+
+	-- Wait for the specified time
+	wait(WAIT_TIME)
+
+	-- Loop through all the parts in the folder
+	for index, hexagon in ipairs(FolderOfParts:GetChildren()) do
+		-- Check if the part is a BasePart
+		if hexagon:IsA("BasePart") then
+			-- Set CanCollide to true
+			hexagon.CanCollide = true
+
+			-- Check if the part's color is not the picked color
+			if hexagon.BrickColor.Color ~= PickRandom.Color then
+				-- Fade out the part
+				coroutine.wrap(FadeAnimation)(hexagon, 1)
+			end
+		end
+	end
+
+	-- Wait for the specified time
+	wait(WAIT_TIME)
+
+	-- Loop through all the parts in the folder again
+	for index, hexagon in ipairs(FolderOfParts:GetChildren()) do
+		-- Check if the part is a BasePart
+		if hexagon:IsA("BasePart") then
+			-- Fade in the part
+			coroutine.wrap(FadeAnimation)(hexagon, 0)
+		end
+	end
+end

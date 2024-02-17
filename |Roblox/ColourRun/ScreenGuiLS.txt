@@ -1,0 +1,102 @@
+-- By ErisDwarf322
+-- Colour Run ScreenGui 
+-- Place in Starter Gui, ScreenGui add Local Script
+
+-- Define the colors to use
+local Colors = {
+	{Color = BrickColor.new("Really red").Color, Name = "Red"},
+	{Color = BrickColor.new("Lime green").Color, Name = "Green"},
+	{Color = BrickColor.new("Really blue").Color, Name = "Blue"},
+	{Color = BrickColor.new("New Yeller").Color, Name = "Yellow"},
+	{Color = BrickColor.new("Lily white").Color, Name = "White"},
+	{Color = BrickColor.new("Bright orange").Color, Name = "Orange"},
+	{Color = BrickColor.new("Pink").Color, Name = "Pink"},
+	{Color = BrickColor.new("Royal purple").Color, Name = "Purple"},
+	{Color = BrickColor.new("Black").Color, Name = "Black"},
+}
+
+-- Get the Players service
+local Players = game:GetService("Players")
+
+-- Get the player's GUI
+local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Get the GUI
+local yourGui = playerGui:WaitForChild("ScreenGui")
+
+-- Get the Frame in the GUI
+local yourFrame = yourGui:WaitForChild("Frame")  
+
+-- Get the TextLabel in the Frame
+local colorLabel = yourFrame:WaitForChild("Color")
+
+-- Get the TextLabel for the timer in the Frame
+local timerLabel = yourFrame:WaitForChild("Timer")
+
+-- Wait for the RemoteEvent to be created
+local ColorChanged = game.ReplicatedStorage:WaitForChild("ColorChanged", 5)
+if not ColorChanged then
+	print("ColorChanged not found")
+	return
+end
+
+-- Table to store the original colors of the hexagons
+local originalColors = {}
+
+-- Get the folder containing the parts
+local FolderOfParts = game.Workspace.Hexagons
+
+-- Loop through all the parts in the folder
+for index, hexagon in ipairs(FolderOfParts:GetChildren()) do
+	-- Check if the part is a BasePart
+	if hexagon:IsA("BasePart") then
+		-- Store the part's original color
+		originalColors[hexagon] = hexagon.BrickColor
+	end
+end
+
+-- Function to return the colors
+function ReturnColors()
+	-- Loop through all the parts in the folder
+	for index, hexagon in ipairs(FolderOfParts:GetChildren()) do
+		-- Check if the part is a BasePart
+		if hexagon:IsA("BasePart") then
+			-- Check if the original color of the hexagon is stored in the originalColors table
+			if originalColors[hexagon] then
+				-- Change the part's color back to its original color
+				hexagon.BrickColor = originalColors[hexagon]
+			else
+				print("Original color for hexagon not found")
+			end
+		end
+	end
+end
+
+-- Listen to the RemoteEvent
+ColorChanged.OnClientEvent:Connect(function(color, colorName)
+	print("ColorChanged event received")  -- Debug print
+
+	-- Update the colorLabel's text to display the picked color
+	colorLabel.Text = " " .. (colorName or "Unknown")
+
+	-- Change the font color of the colorLabel to match the picked color
+	colorLabel.TextColor3 = color
+
+	-- Yield the script for a moment to allow the GUI to update
+	wait()
+
+	-- Start a countdown from 3
+	for i = 3, 0, -1 do
+		-- Update the timerLabel's text to display the remaining time
+		timerLabel.Text = " " .. i .. " seconds"
+
+		-- Wait for 1 second
+		wait(1)
+	end
+
+	-- Clear the timerLabel's text after the countdown
+	timerLabel.Text = ""
+
+	-- Bring back the colors
+	ReturnColors()
+end)

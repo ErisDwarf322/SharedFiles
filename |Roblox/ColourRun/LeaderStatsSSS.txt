@@ -1,0 +1,21 @@
+-- By ErisDwarf322
+-- Leaders Stats Script
+-- To be placed in Server Script Service
+
+
+-- Function to handle a player being added
+local function onPlayerAdded(player)
+	local leaderstats = Instance.new("Folder", player)
+	leaderstats.Name = "leaderstats"
+
+	local time = Instance.new("IntValue", leaderstats)
+	time.Name = "Time"
+	time.Value = 0
+
+	while wait(1) do
+		time.Value = time.Value + 1
+	end
+end
+
+-- Connect the player added event
+game.Players.PlayerAdded:Connect(onPlayerAdded)
